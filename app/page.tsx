@@ -2,9 +2,28 @@
 "use server"
 import dependencies from '@/app/server_common/dependency'
 import { DEFAULT_VIEWPORT_OPTIONS, ViewportOptions } from './dashboard'
+import type { Metadata, Viewport } from 'next'
 
 function isAutorefreshValid(autoRefreshSecond: number|undefined): boolean {
     return autoRefreshSecond != null && !isNaN(autoRefreshSecond) && autoRefreshSecond > 0
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+    return {
+        title: 'PDF Dash',
+        appleWebApp: {
+          capable: true
+        },
+        manifest: '/manifest.json'
+    }
+}
+
+export async function generateViewport(): Promise<Viewport> {
+    return {
+        // width: 'device-width',
+        initialScale: 1.0, // this works just fine on old iPad 3rd gen (2012)
+        viewportFit: 'cover'
+    }
 }
 
 export default async function Home({
