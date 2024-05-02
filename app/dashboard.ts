@@ -49,7 +49,7 @@ export class DashboardPage {
     private browser: Browser|null = null
     private page: Page|null = null
     private screenshotOptions: ScreenshotOptions = {
-        fullPage: true,
+        fullPage: false,
         captureBeyondViewport: false
     };
     private currentViewport = DEFAULT_VIEWPORT_OPTIONS
