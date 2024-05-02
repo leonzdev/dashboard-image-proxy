@@ -18,6 +18,12 @@ export class Dependencies {
     async init() {
         await this.getDashboardPage()
     }
+
+    async close() {
+        if (this.dashboardPage != null) {
+            await this.dashboardPage.close()
+        }
+    }
 }
 
 const container = new Dependencies(globalConfig)
