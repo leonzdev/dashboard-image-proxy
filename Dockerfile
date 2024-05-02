@@ -2,10 +2,10 @@ FROM node:lts as BUILDER
 
 WORKDIR /app
 COPY . .
-RUN rm .env* \
-  && rm -r .next \
-  && rm -r node_modules \
-  && rm next-env.d.ts
+RUN rm -f .env* \
+  && rm -rf .next \
+  && rm -rf node_modules \
+  && rm -f next-env.d.ts
 
 # Set some environment variables to make next build happy
 ENV DASH_URL="http://localhost:8000"
