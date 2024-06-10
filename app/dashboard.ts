@@ -53,8 +53,11 @@ export class DashboardPage {
         captureBeyondViewport: false
     };
     private currentViewport = DEFAULT_VIEWPORT_OPTIONS
+    private reloadLock: Promise<any>|undefined
+    private autoReloader: NodeJS.Timeout|undefined
+
     // public viewportOptions = DEFAULT_VIEWPORT_OPTIONS
-    constructor(public dashUrl: string, public authHeaderKey: string, public authHeaderValue: string) {}
+    constructor(public dashUrl: string, public authHeaderKey: string, public authHeaderValue: string, public reloadIntervalMs?: number) {}
 
     async init() {
         if (this.browser == null) {
@@ -73,22 +76,43 @@ export class DashboardPage {
           
             // Resize the viewport and reload the page so all panels load.
             await this.setViewport(DEFAULT_VIEWPORT_OPTIONS)
+
+            if (this.reloadIntervalMs !== undefined) {
+                this.autoReloader = setInterval(() => {
+                    this.reload()
+                }, this.reloadIntervalMs)
+            }
         }
     }
+
+    async reload() {
+        if (this.reloadLock != undefined) {
+            return
+        }
+        this.reloadLock = this.page?.reload(pageOptions)
+
+        try {
+            await this.reloadLock
+        } finally {
+            this.reloadLock = undefined
+        }
+    }
+
     async getScreenshot(viewportOptions?: ViewportOptions): Promise<Buffer|undefined> {
         await this.init()
         if (viewportOptions != null && !this.isSameViewport(viewportOptions)) {
             console.log(`Set new viewport: ${JSON.stringify(viewportOptions)}`)
             await this.setViewport(viewportOptions)
         } else if (globalConfig.shouldReloadBeforeScreenshot){
-            await this.page?.reload(pageOptions);
-        }
+            await this.reload();
+        } 
+        await this.reloadLock;
         return await this.page?.screenshot(this.screenshotOptions)
     }
 
     async setViewport(viewportOptions: ViewportOptions) {
         await this.page?.setViewport(viewportOptions as Viewport); // cast
-        await this.page?.reload(pageOptions);
+        await this.reload();
         this.currentViewport = viewportOptions;
         await this.page?.waitForSelector(selector, selectorOptions);
         this.screenshotOptions.clip = await this.page?.$eval(selector, getClip)
@@ -101,12 +125,16 @@ export class DashboardPage {
     }
 
     async close() {
+        if (this.autoReloader) {
+            clearInterval(this.autoReloader)
+        }
         if (this.page != null) {
             await this.page.close()
         }
         if (this.browser != null) {
             await this.browser.close()
         }
+        this.autoReloader = undefined
         this.page = null
         this.browser = null
     }

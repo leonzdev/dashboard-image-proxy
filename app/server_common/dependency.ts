@@ -9,7 +9,7 @@ export class Dependencies {
 
     async getDashboardPage(): Promise<DashboardPage> {
         if (this.dashboardPage == null) {
-            this.dashboardPage = new DashboardPage(this.config.dashboardUrl, this.config.authHeaderKey, this.config.authHeaderValue)
+            this.dashboardPage = new DashboardPage(this.config.dashboardUrl, this.config.authHeaderKey, this.config.authHeaderValue, globalConfig.reloadInterval * 1000)
             await this.dashboardPage.init()
         }
         return this.dashboardPage
